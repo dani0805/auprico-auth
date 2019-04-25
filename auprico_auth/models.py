@@ -47,18 +47,18 @@ class VersionedModel(models.Model):
         super(VersionedModel, self).__init__(*args, **kwargs)
         # default to all fields being versioned except the created and edited
         if self.versioned_fields is None:
-            self.versioned_fields = [f.name for f in type(self)._meta.get_fields() if f.name not in ['created_ts', 'created_by', 'edited_ts', 'edited_by', 'version']]
+            self.versioned_fields = [f.name for f in type(self)._meta.get_fields() if f.name not in ['created_ts', 'created_by', 'edited_ts', 'edited_by', 'version', 'versions', 'id']]
         self.changed_by_user: User = None
         if self.pk:
             for field in self.versioned_fields:
-                setattr(self, '__original_%s' % field, getattr(self, field))
+                setattr(self, '__original_%s' % field, getattr(self, field, None))
 
     def has_changed(self):
         if self.pk is None:
             return True
         for field in self.versioned_fields:
             orig = '__original_%s' % field
-            if (hasattr(self, orig) and getattr(self, orig) != getattr(self, field)) or (not hasattr(self, orig) and hasattr(self, field)):
+            if getattr(self, orig, None) != getattr(self, field, None):
                 return True
         return False
 
@@ -68,7 +68,7 @@ class VersionedModel(models.Model):
             if self.changed_by_user is not None:
                 self.edited_by = self.changed_by_user
                 self.edited_ts = django_now()
-                if self.pk is None:
+                if self.created_by is None:
                     self.created_by = self.changed_by_user
                 last_version = self.versions.order_by("-version_number").first()
                 version_number = 1
