@@ -15,7 +15,7 @@ from django.utils.translation import ugettext_lazy
 class Version(models.Model):
     version_number = models.IntegerField()
     edited_ts = models.DateTimeField()
-    edited_by = models.ForeignKey("User", on_delete=PROTECT, null=True, blank=True)
+    edited_by = models.ForeignKey("auprico_auth.User", on_delete=PROTECT, null=True, blank=True)
 
 
 class VersionChange(models.Model):
@@ -35,9 +35,9 @@ class VersionChangeClob(models.Model):
 class VersionedModel(models.Model):
     versioned_fields = None
     created_ts = models.DateTimeField(default=django_now)
-    created_by = models.ForeignKey("User", on_delete=PROTECT, null=True, blank=True,  related_name="%(app_label)s_%(class)s_created")
+    created_by = models.ForeignKey("auprico_auth.User", on_delete=PROTECT, null=True, blank=True,  related_name="%(app_label)s_%(class)s_created")
     edited_ts = models.DateTimeField(null=True, blank=True)
-    edited_by = models.ForeignKey("User", on_delete=PROTECT, null=True, blank=True, related_name="%(app_label)s_%(class)s_edited")
+    edited_by = models.ForeignKey("auprico_auth.User", on_delete=PROTECT, null=True, blank=True, related_name="%(app_label)s_%(class)s_edited")
     versions = models.ManyToManyField(Version, related_name="%(app_label)s_%(class)s")
 
     class Meta:
@@ -300,7 +300,7 @@ class Role(VersionedModel):
 
 class Affiliation(VersionedModel):
     team = models.ForeignKey(Team, on_delete=PROTECT, related_name='affiliations_for_team')
-    user = models.ForeignKey("User", on_delete=PROTECT, related_name='affiliations')
+    user = models.ForeignKey("auprico_auth.User", on_delete=PROTECT, related_name='affiliations')
     role = models.ForeignKey(Role, on_delete=PROTECT)
 
 
