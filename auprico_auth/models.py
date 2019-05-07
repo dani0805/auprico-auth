@@ -41,6 +41,7 @@ def init_version(sender, instance, **kwargs):
         instance.versioned_fields = [f.name for f in type(instance)._meta.get_fields() if
             f.name not in ['created_ts', 'created_by', 'edited_ts', 'edited_by', 'version', 'versions', 'id', 'requirement', 'dynamic_model_type']]
     if instance.pk:
+        pass
         # TODO deactivated because it loads the whole database to set original values, need to limit to 0 recursions
         # for field in instance.versioned_fields:
         #    setattr(instance, '__original_%s' % field, getattr(instance, field, None))
