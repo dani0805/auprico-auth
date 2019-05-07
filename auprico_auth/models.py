@@ -39,10 +39,11 @@ def init_version(sender, instance, **kwargs):
     print("initializing versioned_fields")
     if instance.versioned_fields is None:
         instance.versioned_fields = [f.name for f in type(instance)._meta.get_fields() if
-            f.name not in ['created_ts', 'created_by', 'edited_ts', 'edited_by', 'version', 'versions', 'id']]
+            f.name not in ['created_ts', 'created_by', 'edited_ts', 'edited_by', 'version', 'versions', 'id', 'requirement', 'dynamic_model_type']]
     if instance.pk:
-        for field in instance.versioned_fields:
-            setattr(instance, '__original_%s' % field, getattr(instance, field, None))
+        # TODO deactivated because it loads the whole database to set original values, need to limit to 0 recursions
+        # for field in instance.versioned_fields:
+        #    setattr(instance, '__original_%s' % field, getattr(instance, field, None))
 
 class VersionedModel(models.Model):
     versioned_fields = None
