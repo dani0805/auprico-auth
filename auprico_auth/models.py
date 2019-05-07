@@ -2,6 +2,8 @@ import ast
 
 from django.contrib.auth.models import AbstractUser
 from django.db import models
+from django.db.models.signals import post_init
+from django.dispatch import receiver
 from django.utils.timezone import now as django_now
 from auprico_core.models import Person, Email, Address, Language, Country
 
@@ -32,6 +34,16 @@ class VersionChangeClob(models.Model):
     new_value = models.TextField(max_length=60000)
 
 
+def init_version(sender, instance, **kwargs):
+    # default to all fields being versioned except the created and edited
+    print("initializing versioned_fields")
+    if instance.versioned_fields is None:
+        instance.versioned_fields = [f.name for f in type(instance)._meta.get_fields() if
+            f.name not in ['created_ts', 'created_by', 'edited_ts', 'edited_by', 'version', 'versions', 'id']]
+    if instance.pk:
+        for field in instance.versioned_fields:
+            setattr(instance, '__original_%s' % field, getattr(instance, field, None))
+
 class VersionedModel(models.Model):
     versioned_fields = None
     created_ts = models.DateTimeField(default=django_now)
@@ -43,29 +55,25 @@ class VersionedModel(models.Model):
     class Meta:
         abstract = True
 
-    def __init__(self, *args, **kwargs):
-        super(VersionedModel, self).__init__(*args, **kwargs)
-        # default to all fields being versioned except the created and edited
-        if self.versioned_fields is None:
-            self.versioned_fields = [f.name for f in type(self)._meta.get_fields() if f.name not in ['created_ts', 'created_by', 'edited_ts', 'edited_by', 'version', 'versions', 'id']]
-        self.changed_by_user: User = None
-        if self.pk:
-            for field in self.versioned_fields:
-                setattr(self, '__original_%s' % field, getattr(self, field, None))
+    @classmethod
+    def __init_subclass__(cls, **kwargs):
+        super().__init_subclass__(**kwargs)
+        models.signals.post_init.connect(init_version, sender=cls)
 
     def has_changed(self):
         if self.pk is None:
             return True
-        for field in self.versioned_fields:
-            orig = '__original_%s' % field
-            if getattr(self, orig, None) != getattr(self, field, None):
-                return True
+        if self.versioned_fields:
+            for field in self.versioned_fields:
+                orig = '__original_%s' % field
+                if getattr(self, orig, None) != getattr(self, field, None):
+                    return True
         return False
 
     def save(self, force_insert=False, force_update=False, using=None,
              update_fields=None):
         if self.has_changed():
-            if self.changed_by_user is not None:
+            if hasattr(self, "changed_by_user") and getattr(self, "changed_by_user", None):
                 self.edited_by = self.changed_by_user
                 self.edited_ts = django_now()
                 if self.created_by is None:
@@ -82,6 +90,7 @@ class VersionedModel(models.Model):
                     if old_value != new_value:
                         VersionChange.objects.create(version=new_version, fieldname=field, old_value=str(old_value)[:4000], new_value=str(new_value)[:4000])
         super(VersionedModel, self).save()
+
 
 
 class Team(VersionedModel):

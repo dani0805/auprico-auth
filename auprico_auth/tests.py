@@ -15,6 +15,7 @@ class ETLTest(TestCase):
     def test_versions(self):
         role = Role.objects.create(name="Admin")
         role = Role.objects.get(name="Admin")
+        self.assertIsNotNone(role.versioned_fields)
         self.assertEqual(Version.objects.count(), 0, "number of versions does not match")
         role.changed_by_user = self.user
         role.description = "Administration Role"
