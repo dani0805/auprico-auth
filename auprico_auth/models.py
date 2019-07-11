@@ -36,7 +36,6 @@ class VersionChangeClob(models.Model):
 
 def init_version(sender, instance, **kwargs):
     # default to all fields being versioned except the created and edited
-    print("initializing versioned_fields")
     if instance.versioned_fields is None:
         instance.versioned_fields = [f.name for f in type(instance)._meta.get_fields() if
             f.name not in ['created_ts', 'created_by', 'edited_ts', 'edited_by', 'version', 'versions', 'id', 'requirement', 'dynamic_model_type']]
