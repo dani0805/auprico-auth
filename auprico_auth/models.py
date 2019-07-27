@@ -45,6 +45,7 @@ def init_version(sender, instance, **kwargs):
         # for field in instance.versioned_fields:
         #    setattr(instance, '__original_%s' % field, getattr(instance, field, None))
 
+
 class VersionedModel(models.Model):
     versioned_fields = None
     created_ts = models.DateTimeField(default=django_now)
@@ -91,7 +92,6 @@ class VersionedModel(models.Model):
                     if old_value != new_value:
                         VersionChange.objects.create(version=new_version, fieldname=field, old_value=str(old_value)[:4000], new_value=str(new_value)[:4000])
         super(VersionedModel, self).save()
-
 
 
 class Team(VersionedModel):
