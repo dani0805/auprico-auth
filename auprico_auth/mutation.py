@@ -1,5 +1,5 @@
 import graphene
-
+from django.db.transaction import atomic
 from auprico_auth.model_service.user import create_user
 from auprico_auth.schema import UserNode
 
@@ -15,6 +15,7 @@ class CreateUser(graphene.ClientIDMutation):
     user = graphene.Field(UserNode)
 
     @classmethod
+    @atomic
     def mutate_and_get_payload(cls, root, info, **input):
         data = input
 

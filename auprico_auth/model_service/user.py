@@ -1,7 +1,7 @@
-from auprico_core.models import Language, Email
+from auprico_core.models import Language
 from auprico_workflow.utils import camelcase_to_underscore
 
-from auprico_auth.models import User
+from auprico_auth.models import User, UserEmail
 
 
 def create_username(params):
@@ -26,17 +26,6 @@ def create_person(params):
     form = dict()
     form['gender'] = params.get('gender', None)
     form['title'] = params.get('title', None)
-    # if params.get('specialization'):
-    #     form['specialization'] = params.get('specialization')
-    # if params.get('specialization_id'):
-    #     form['specialization'] = Specialization.objects.filter(id=params.get('specialization_id', None)).first()
-    if params.get('language'):
-        form['language'] = params.get('language')
-    if params.get('language_id'):
-        form['language'] = Language.objects.filter(id=params.get('language_id', None)).first()
-    form['institution'] = params.get('institution', None)
-    form['department'] = params.get('department', None)
-    form['job_description'] = params.get('job_description', None)
 
     return form
 
@@ -59,10 +48,10 @@ def create_email(context, params):
         form_email['label'] = "Office"
     form_email['label'] = params.get('label')
     form_email['is_main'] = params.get('is_main', False)
-    form_email['val'] = params.get('val')
-    form_email['edited_by'] = context.user
-    form_email['person'] = params.get('person')
-    return Email.objects.create(**form_email)
+    form_email['value'] = params.get('val')
+    # form_email['edited_by'] = context.user
+    form_email['user'] = params.get('person')
+    return UserEmail.objects.create(**form_email)
 
 
 def create_user(context, params):
@@ -72,7 +61,7 @@ def create_user(context, params):
     :return:
     """
     form_user = dict()
-    form_user['edited_by'] = context.user
+    # form_user['edited_by'] = context.user
     if params.get('username'):
         form_user['username'] = params.get('username')
     else:
@@ -89,3 +78,4 @@ def create_user(context, params):
 
     user.save()
     return user
+
