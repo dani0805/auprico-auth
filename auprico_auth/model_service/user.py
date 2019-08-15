@@ -79,3 +79,81 @@ def create_user(context, params):
     user.save()
     return user
 
+def update_person(context, obj, params):
+    """
+    Update the person fields in obj
+    :param obj: model to update (user / inquirer)
+    :param params: fields to update
+    :return:
+    """
+
+    obj.gender = params.get('gender')
+    obj.first_name = params.get('first_name')
+    obj.last_name = params.get('last_name')
+    obj.title = params.get('title')
+    if params.get('language'):
+        obj.language = params.get('language')
+    else:
+        obj.language = Language.objects.filter(id=params.get('language_id')).first()
+    obj.institution = params.get('institution')
+    obj.department = params.get('department')
+    obj.job_description = params.get('job_description')
+    # count isMain (non-deleted) object, we must always have 1 main contact
+    # count_main_contact = _count_main_contact(params)
+
+    # for email in params.get('emails', []):
+    #     if not email.get('val'):
+    #         continue
+    #     if count_main_contact == 0:
+    #         email['isMain'] = True
+    #         count_main_contact = 1
+    #     if email.get('id'):
+    #         update_email(context, email)
+    #     else:
+    #         email['person'] = obj
+    #         create_email(context, email)
+    # for phone in params.get('phones', []):
+    #     if not phone.get('val'):
+    #         continue
+    #     if count_main_contact == 0:
+    #         phone['isMain'] = True
+    #         count_main_contact = 1
+    #     if phone.get('id'):
+    #         update_phone(context, phone)
+    #     else:
+    #         phone['person'] = obj
+    #         create_phone(context, phone)
+    # for address in params.get('addresses', []):
+    #     if count_main_contact == 0:
+    #         address['isMain'] = True
+    #         count_main_contact = 1
+    #     if address.get('id'):
+    #         update_address(context, address)
+    #     else:
+    #         address['person'] = obj
+    #         create_address(context, address)
+
+    if not (obj.emails.exists() or obj.phones.exists() or obj.addresses.exists()):
+        raise ValueError("At least one contact must be specified")
+
+
+def update_user(context, params):
+    """
+    Update user informations (mis.models.User)
+    :param params: metadata/dictionary-like that characterize the user
+    :return:
+    """
+
+    user = User.objects.filter(id=params.get('id')).first()
+    if not user:
+        raise ValueError("user not found")
+    user.language = Language.objects.filter(id=params.get('language_id', None)).first()
+    user.deputy = User.objects.filter(id=params.get('deputy_id', None)).first()
+    user.edited_by = context.user
+
+    user.save()
+
+    update_person(context, user, params)
+
+    user.save()
+    return user
