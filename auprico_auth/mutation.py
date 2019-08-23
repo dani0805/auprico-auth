@@ -2,7 +2,7 @@ import graphene
 from django.db.transaction import atomic
 from graphql_relay import from_global_id
 
-from auprico_auth.model_service.user import create_user
+from auprico_auth.model_service.user import create_user, update_user
 from auprico_auth.schema import UserNode
 
 
