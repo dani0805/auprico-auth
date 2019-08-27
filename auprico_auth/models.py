@@ -5,7 +5,7 @@ from django.db import models
 from django.db.models.signals import post_init
 from django.dispatch import receiver
 from django.utils.timezone import now as django_now
-from auprico_core.models import Person, Email, Address, Language, Country
+from auprico_core.models import Person, Email, Address, Language, Country, Phone
 
 # Create your models here.
 from django.db.models import PROTECT
@@ -462,3 +462,7 @@ class UserEmail(Email, VersionedModel):
 
 class UserAddress(Address, VersionedModel):
     user = models.ForeignKey(User, on_delete=PROTECT, related_name="addresses")
+
+
+class UserPhone(Phone, VersionedModel):
+    user = models.ForeignKey(User, on_delete=PROTECT, related_name="phones")

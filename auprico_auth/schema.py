@@ -2,6 +2,7 @@ import json
 
 from graphene_django.filter import DjangoFilterConnectionField
 from graphene_django.rest_framework.mutation import SerializerMutation
+from graphql_relay import from_global_id
 from rest_framework import serializers
 from graphene import Node
 from graphene_django import DjangoObjectType
@@ -30,6 +31,7 @@ class StateMutation(SerializerMutation):
         lookup_field = 'id'
 '''
 
+
 class CustomDjangoFilterConnectionField(DjangoFilterConnectionField):
     @classmethod
     def connection_resolver(cls, resolver, connection, default_manager, max_limit,
@@ -47,6 +49,7 @@ class CustomDjangoFilterConnectionField(DjangoFilterConnectionField):
         return DjangoConnectionField.connection_resolver(resolver, connection, qs, max_limit, enforce_first_or_last,
                                                          root, info, **args)
 
+
 class CountableConnectionBase(graphene.relay.Connection):
     class Meta:
         abstract = True
@@ -59,12 +62,14 @@ class CountableConnectionBase(graphene.relay.Connection):
         except:
             return self.length
 
+
 class UserNode(DjangoObjectType):
     class Meta:
         model = User
         interfaces = (Node,)
         filter_fields = []
         connection_class = CountableConnectionBase
+
 
 def user_custom_filter_action(query, field_name, value):
     qs = query.filter(is_active=True)
@@ -129,3 +134,25 @@ class UserQuery(graphene.ObjectType):
         return User.objects.all()
 
 
+class UserEmailNode(DjangoObjectType):
+    class Meta:
+        model = UserEmail
+        interfaces = (Node,)
+        filter_fields = []
+        connection_class = CountableConnectionBase
+
+
+class UserAddressNode(DjangoObjectType):
+    class Meta:
+        model = UserAddress
+        interfaces = (Node,)
+        filter_fields = []
+        connection_class = CountableConnectionBase
+
+
+class UserPhoneNode(DjangoObjectType):
+    class Meta:
+        model = UserPhone
+        interfaces = (Node,)
+        filter_fields = []
+        connection_class = CountableConnectionBase
