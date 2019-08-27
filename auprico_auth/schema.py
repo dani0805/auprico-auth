@@ -1,14 +1,10 @@
 import json
 
-from graphene_django.filter import DjangoFilterConnectionField
-from graphene_django.rest_framework.mutation import SerializerMutation
+from auprico_core.schema import CountableConnectionBase
 from graphql_relay import from_global_id
-from rest_framework import serializers
 from graphene import Node
-from graphene_django import DjangoObjectType
 from .models import *
 import graphene
-from graphene_django.debug import DjangoDebug
 import django_filters
 from django.core.paginator import Paginator
 from graphene_django import DjangoConnectionField
@@ -48,19 +44,6 @@ class CustomDjangoFilterConnectionField(DjangoFilterConnectionField):
             qs = paginator.page(page)
         return DjangoConnectionField.connection_resolver(resolver, connection, qs, max_limit, enforce_first_or_last,
                                                          root, info, **args)
-
-
-class CountableConnectionBase(graphene.relay.Connection):
-    class Meta:
-        abstract = True
-
-    total_count = graphene.Int()
-
-    def resolve_total_count(self, info, **kwargs):
-        try:
-            return self.iterable.paginator.count
-        except:
-            return self.length
 
 
 class UserNode(DjangoObjectType):
