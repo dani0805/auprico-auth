@@ -149,7 +149,7 @@ def update_user(context, params):
         raise ValueError("user not found")
     user.language = Language.objects.filter(id=params.get('language_id', None)).first()
     user.deputy = User.objects.filter(id=params.get('deputy_id', None)).first()
-    user.edited_by = context.user
+    # user.edited_by = context.user
 
     user.save()
 
