@@ -133,8 +133,8 @@ def update_person(context, obj, params):
     #         address['person'] = obj
     #         create_address(context, address)
 
-    if not (obj.emails.exists() or obj.phones.exists() or obj.addresses.exists()):
-        raise ValueError("At least one contact must be specified")
+    # if not (obj.emails.exists() or obj.phones.exists() or obj.addresses.exists()):
+    #     raise ValueError("At least one contact must be specified")
 
 
 def update_user(context, params):
@@ -154,6 +154,24 @@ def update_user(context, params):
     user.save()
 
     update_person(context, user, params)
+
+    user.save()
+    return user
+
+
+def update_user_password(context, params):
+    """
+    Update user password (mis.models.User)
+    :param params: metadata/dictionary-like that characterize the user
+    :return:
+    """
+
+    user = User.objects.filter(id=params.get('id')).first()
+    if not user:
+        raise ValueError("user not found")
+    # user.edited_by = context.user
+    if params.get('password'):
+        user.set_password(params.get('password'))
 
     user.save()
     return user

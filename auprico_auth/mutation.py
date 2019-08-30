@@ -63,6 +63,26 @@ class UpdateUser(graphene.ClientIDMutation):
             return UpdateUser(user=user)
 
 
+class UpdateUserPassword(graphene.ClientIDMutation):
+    class Input:
+        id = graphene.String()
+        password = graphene.String()
+
+    user = graphene.Field(UserNode)
+
+    @classmethod
+    def mutate_and_get_payload(cls, root, info, **kwargs):
+        data = kwargs
+        # load real id
+        node, data['id'] = from_global_id(data['id'])
+
+        if node == "UserNode":
+            # mis.models.User (DETAIL)
+            user = update_user_password(info.context, data)
+            return UpdateUserPassword(user=user)
+
+
 class Mutation(graphene.AbstractType):
     create_user = CreateUser.Field()
     update_user = UpdateUser.Field()
+    update_user_password = UpdateUserPassword.Field()
