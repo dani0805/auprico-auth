@@ -2,8 +2,9 @@ import graphene
 from django.db.transaction import atomic
 from graphql_relay import from_global_id
 
+from auprico_auth.model_service.team import create_team, update_team
 from auprico_auth.model_service.user import create_user, update_user, update_user_password
-from auprico_auth.schema import UserNode
+from auprico_auth.schema import UserNode, TeamNode
 
 
 class CreateUser(graphene.ClientIDMutation):
@@ -82,7 +83,45 @@ class UpdateUserPassword(graphene.ClientIDMutation):
             return UpdateUserPassword(user=user)
 
 
+class CreateTeam(graphene.ClientIDMutation):
+    class Input:
+        name = graphene.String()
+        code = graphene.String()
+
+    team = graphene.Field(TeamNode)
+
+    @classmethod
+    @atomic
+    def mutate_and_get_payload(cls, root, info, **input):
+        data = input
+
+        team = create_team(info.context, data)
+
+        return CreateTeam(team=team)
+
+
+class UpdateTeam(graphene.ClientIDMutation):
+    class Input:
+        id = graphene.String()
+        name = graphene.String()
+        code = graphene.String()
+
+    team = graphene.Field(TeamNode)
+
+    @classmethod
+    def mutate_and_get_payload(cls, root, info, **kwargs):
+        data = kwargs
+        # load real id
+        node, data['id'] = from_global_id(data['id'])
+
+        if node == "TeamNode":
+            team = update_team(info.context, data)
+            return UpdateTeam(team=team)
+
+
 class Mutation(graphene.AbstractType):
     create_user = CreateUser.Field()
     update_user = UpdateUser.Field()
+    create_team = CreateTeam.Field()
+    update_team = UpdateTeam.Field()
     update_user_password = UpdateUserPassword.Field()

@@ -79,6 +79,7 @@ def create_user(context, params):
     user.save()
     return user
 
+
 def update_person(context, obj, params):
     """
     Update the person fields in obj
