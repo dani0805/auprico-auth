@@ -150,7 +150,7 @@ class TeamNode(DjangoObjectType):
 
 
 def team_custom_filter_action(query, field_name, value):
-    qs = query.filter(is_active=True)
+    qs = query.all()
     if value:
         filters = json.loads(value)
         ids = filters.get('ids')
@@ -198,4 +198,3 @@ class TeamQuery(graphene.ObjectType):
 
     def resolve_all_teams(self, info):
         return Team.objects.all()
-
