@@ -139,3 +139,63 @@ class UserPhoneNode(DjangoObjectType):
         interfaces = (Node,)
         filter_fields = []
         connection_class = CountableConnectionBase
+
+
+class TeamNode(DjangoObjectType):
+    class Meta:
+        model = Team
+        interfaces = (Node,)
+        filter_fields = []
+        connection_class = CountableConnectionBase
+
+
+def team_custom_filter_action(query, field_name, value):
+    qs = query.filter(is_active=True)
+    if value:
+        filters = json.loads(value)
+        ids = filters.get('ids')
+        term = filters.get('term')
+        #size = filters.get('size', 20)
+        order_by = filters.get('order_by')
+        #page = filters.get('page', 0)
+        if ids:
+            qs = qs.filter(id__in=ids)
+        if term:
+            searchTerms = term.split(' ')
+            for t in searchTerms:
+                qs = qs.filter(name__icontains=t) | \
+                     qs.filter(code__icontains=t)
+        if order_by:
+            qs = qs.order_by(order_by).distinct()
+        return qs
+    return qs
+
+
+class TeamFilter(django_filters.FilterSet):
+    # Do case-insensitive lookups on 'name'
+    json_filter = django_filters.CharFilter(method=team_custom_filter_action)
+    context = None
+
+    def __init__(self, *args, **kwargs):
+        self.context = kwargs.pop('context')
+        super(TeamFilter, self).__init__(*args, **kwargs)
+
+    class Meta:
+        model = Team
+        fields = ['json_filter']
+
+    @property
+    def qs(self):
+        filtered_qs = super(TeamFilter, self).qs
+        relay_id = self.data.get("mdv_id")
+        return filtered_qs
+
+
+class TeamQuery(graphene.ObjectType):
+    all_teams = DjangoFilterConnectionField(TeamNode)
+    filter_team = CustomDjangoFilterConnectionField(TeamNode, filterset_class=TeamFilter)
+    team = Node.Field(TeamNode)
+
+    def resolve_all_teams(self, info):
+        return Team.objects.all()
+
